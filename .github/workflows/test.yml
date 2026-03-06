@@ -87,7 +87,7 @@ jobs:
     permissions:
       checks: write
       pull-requests: write
-    if: always()
+    if: always() && github.event_name == 'pull_request'
 
     steps:
     - name: Download Artifacts
