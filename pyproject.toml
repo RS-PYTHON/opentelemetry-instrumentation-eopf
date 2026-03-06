@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=82.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opentelemetry-instrumentation-eopf"
+version = "0.1.0"
+description = "OpenTelemetry eopf Instrumentation"
+readme = "README.rst"
+authors = [{ name = "Airbus, CS Group" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = ["eopf", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation", "opentelemetry-semantic-conventions"]
+
+[project.urls]
+Homepage = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf"
+Repository = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf"
+Issues = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf/issues/"
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pyright",
+    "pytest",
+    "pytest-cov",
+    "pytest-html",
+    "pytest-xdist",
+    "pytest-socket",
+    "pytest-instafail",
+    "tox",
+    "tox-uv",
+    "twine",
+    "wheel",
+]
+
+[project.entry-points.opentelemetry_instrumentor]
+eopf = "opentelemetry.instrumentation.eopf:eopfInstrumentor"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
+
+[tool.setuptools.package-data]
+"*" = ["LICENSE", "NOTICE", "py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "--disable-socket --allow-unix-socket --allow-hosts=localhost"
+testpaths = ["tests"]
+
+[tool.uv]
+cache-keys = [{ git = true }]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "B",   # flake8-bugbear
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "C90", # mccabe (complexity)
+    "I",   # isort
+    "T20", # flake8-print
+    "D1",  # pydocstyle - docstring presence only
+]
+ignore = [
+    "E203", # Whitespace before '{symbol}'
+    "E266", # Too many leading '#' for block comment
+    "E501", # Line too long
+    "D100", # Missing docstring in public module
+    "D107", # Missing docstring in __init__
+    "D105", # Missing docstring in magic method
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/context.py" = ["F401"] # F401: unused import
+"tests/**.py" = ["D"]         # D: pydocstyle
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
