@@ -1,0 +1,108 @@
+name: Run Linting and Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v6
+      with:
+        # Get history and tags for SCM versioning to work
+        fetch-depth: 0
+    - name: Install the latest version of uv with cache enabled
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: "latest"
+        enable-cache: true
+        cache-dependency-glob: ""
+    - name: Run linters with tox
+      run: uvx --python ${{ matrix.python-version }} --with tox-uv tox -e linters
+
+  check-pypi:
+    name: Long description check for PyPI
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v6
+      with:
+        # Get history and tags for SCM versioning to work
+        fetch-depth: 0
+    - name: Install the latest version of uv with cache enabled
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: "latest"
+        enable-cache: true
+        cache-dependency-glob: ""
+    - name: Testing with tox and sphinx (to have rst2html.py utility available)
+      run: uvx --with tox-uv --with sphinx tox -e pypi
+
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]  # Cannot make it work with 3.13+ yet
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v6
+      with:
+        # Get history and tags for SCM versioning to work
+        fetch-depth: 0
+    - name: Install the latest version of uv with cache enabled
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: "latest"
+        enable-cache: true
+        cache-dependency-glob: ""
+
+    - name: Test with tox
+      run: uvx --python ${{ matrix.python-version }} --with tox-uv --with tox-gh-actions tox
+#      run: uvx --python ${{ matrix.python-version }} --with tox-uv --with tox-gh-actions --with "git+https://__token__:${{ secrets.GITLAB_EOPF_TOKEN }}@gitlab.eopf.copernicus.eu/vincent.privat/eopf-cpm.git@minimal-pip-install" tox
+    - name: Upload Unit Test Results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: unit-test-results-python${{ matrix.python-version }}
+        path: test-reports/*.xml
+
+  publish-test-results:
+    name: "Publish Unit Tests Results"
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+    if: always()
+
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v8
+      with:
+        path: artifacts
+
+    - name: Publish Unit Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      continue-on-error: true
+      with:
+        files: artifacts/*/junit-report.xml
+
+    - name: Coverage comment
+      uses: MishaKav/pytest-coverage-comment@v1
+      with:
+        pytest-xml-coverage-path: artifacts/unit-test-results-python3.11/coverage.xml
+        junitxml-path: artifacts/unit-test-results-python3.11/junit-report.xml
