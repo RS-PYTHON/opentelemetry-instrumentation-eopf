@@ -1,5 +1,10 @@
 # opentelemetry-instrumentation-eopf
-OpenTelemetry instrumentation for ESA Copernicus Earth Observation Processor Framework (EOPF)
+OpenTelemetry [Instrumentation Library](https://opentelemetry.io/docs/specs/otel/overview/#instrumentation-libraries) for ESA Copernicus Earth Observation Processor Framework ([EOPF](https://eopf.copernicus.eu))
+
+Contributing
+============
+
+This projects adheres to the OpenTelemetry Python [guidelines for instrumentations](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/CONTRIBUTING.md#guideline-for-instrumentations).
 
 Licensing
 =========

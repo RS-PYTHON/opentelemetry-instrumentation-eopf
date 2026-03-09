@@ -26,19 +26,22 @@ def traced_method(tracer: Tracer, span_name: str):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             with tracer.start_as_current_span(span_name, kind=SpanKind.INTERNAL) as span:
-                # Ajoute tous les kwargs comme attributs
-                for k, v in kwargs.items():
-                    if isinstance(v, (str, int, float, bool)):
-                        span.set_attribute(f"kwarg.{k}", v)
-                    else:
-                        span.set_attribute(f"kwarg.{k}", f"<{type(v).__name__}>")
+                if span.is_recording():
+                    # Add all kwargs as attributes
+                    for k, v in kwargs.items():
+                        if isinstance(v, (str, int, float, bool)):
+                            span.set_attribute(f"kwarg.{k}", v)
+                        else:
+                            span.set_attribute(f"kwarg.{k}", f"<{type(v).__name__}>")
                 try:
                     result = func(*args, **kwargs)
-                    span.set_status(Status(StatusCode.OK))
+                    if span.is_recording():
+                        span.set_status(Status(StatusCode.OK))
                     return result
                 except Exception as exc:
-                    span.set_status(Status(StatusCode.ERROR, str(exc)))
-                    span.record_exception(exc)
+                    if span.is_recording():
+                        span.set_status(Status(StatusCode.ERROR, str(exc)))
+                        span.record_exception(exc)
                     raise
 
         return wrapper

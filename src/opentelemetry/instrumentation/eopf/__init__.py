@@ -15,6 +15,7 @@
 """OpenTelemetry auto-instrumentation for eopf."""
 
 from typing import Collection
+from typing_extensions import override
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.metrics import get_meter
@@ -31,6 +32,7 @@ class eopfInstrumentor(BaseInstrumentor):
         """Init the instrumentor for eopf."""
         super().__init__()
 
+    @override
     def instrumentation_dependencies(self) -> Collection[str]:
         """Return a list of python packages with versions that the will be instrumented.
 
@@ -39,6 +41,7 @@ class eopfInstrumentor(BaseInstrumentor):
         """
         return _instruments
 
+    @override
     def _instrument(self, **kwargs) -> None:
         """Instruments eopf."""
         tracer_provider = kwargs.get("tracer_provider")
@@ -51,6 +54,7 @@ class eopfInstrumentor(BaseInstrumentor):
 
         metrics.init_and_patch(meter)
 
+    @override
     def _uninstrument(self, **kwargs) -> None:
         """Uninstrument the library.
 
