@@ -32,6 +32,9 @@ Issues = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf/issues
 
 [project.optional-dependencies]
 dev = [
+    "opentelemetry-test-utils == 0.61b0",
+    "bokeh", # needed by eopf 2.7.0
+    "defusedxml", # needed by eopf 2.7.0
     "pre-commit",
     "pyright",
     "pytest",
@@ -63,8 +66,9 @@ exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 "*" = ["LICENSE", "NOTICE", "py.typed"]
 
 [tool.pytest.ini_options]
-addopts = "--disable-socket --allow-unix-socket --allow-hosts=localhost"
+addopts = "--color=yes"
 testpaths = ["tests"]
+pythonpath = ["tests"]
 
 [tool.uv]
 cache-keys = [{ git = true }]

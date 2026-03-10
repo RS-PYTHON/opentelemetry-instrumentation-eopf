@@ -59,12 +59,12 @@ I/O:
   # input products descriptions and access parameters
   input_products:
   - id: L1C
-    path: ${L1C_INPUT_PRODUCT}
+    path: data/S3B_OL_2_LFR____20260311T181307_20260311T181307_20260311T195128_0000_117_326_4320_ESA_O_NR_003.SEN3
     store_type: safe
   # Adf inputs, will not be opened by the triggering, the info are just passed to the ProcessingUnit
   adfs: # Optional
   - id: GIP_CONVERT
-    path: ${L1C_INPUT_GIP_CONVERT}
+    path: data/gip_convert.json
     store_params: {}
   # Outputs descriptors
   output_products:
@@ -87,4 +87,4 @@ dask_context: # Optional
   # All these parameters will be directly given to the dask client constructor : https://distributed.dask.org/en/stable/api.html#distributed.Client
   client_config: {}
   # Activate the dask performance report file writing in this file
-  performance_report_file: report.html
+  # performance_report_file: report.html

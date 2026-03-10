@@ -11,6 +11,8 @@ Licensing
 
 The code in this project is licensed under Apache License 2.0.
 
+Test data: Contains Copernicus data (2026), ESA. It has been downloaded from [Copernicus Browser](https://browser.dataspace.copernicus.eu).
+
 ---
 
 ![](https://raw.githubusercontent.com/RS-PYTHON/.github/refs/heads/main/profile/banner_logo.jpg)

@@ -15,10 +15,9 @@ from typing import Any, Optional, cast
 
 import numpy as np
 import xarray as xr
-from eopf import EOGroup, EOProduct, EOVariable
+from eopf import EOProduct
 from eopf.computing import EOProcessingUnit
 from eopf.computing.abstract import MappingAuxiliary, MappingDataType
-from xarray import DataArray
 
 
 def rescale_intensity(
@@ -113,41 +112,41 @@ class MyProcessingUnit(EOProcessingUnit):
         product = EOProduct(name="tci", attrs=in_product.attrs.copy())
         product.product_type = "S2MSITCI"
 
-        r10m_group: EOGroup = cast(EOGroup, in_product["/measurements/reflectance/r10m"])
-        red_reflectance: DataArray = cast(EOVariable, r10m_group["b04"]).data
-        green_reflectance = cast(EOVariable, r10m_group["b03"]).data
-        blue_reflectance = cast(EOVariable, r10m_group["b02"]).data
+        # r10m_group: EOGroup = cast(EOGroup, in_product["/measurements/reflectance/r10m"])
+        # red_reflectance: DataArray = cast(EOVariable, r10m_group["b04"]).data
+        # green_reflectance = cast(EOVariable, r10m_group["b03"]).data
+        # blue_reflectance = cast(EOVariable, r10m_group["b02"]).data
 
-        red_rescaled = rescale_intensity(
-            red_reflectance,
-            no_data_replace_value=kwargs.get("no_data_replace_value"),
-            rescale_factor=kwargs.get("rescale_factor"),
-            radiance_max=kwargs.get("radiance_max"),
-            min_out_value=kwargs.get("min_out_value"),
-            max_out_value=kwargs.get("max_out_value"),
-        )
-        green_rescaled = rescale_intensity(
-            green_reflectance,
-            no_data_replace_value=kwargs.get("no_data_replace_value"),
-            rescale_factor=kwargs.get("rescale_factor"),
-            radiance_max=kwargs.get("radiance_max"),
-            min_out_value=kwargs.get("min_out_value"),
-            max_out_value=kwargs.get("max_out_value"),
-        )
-        blue_rescaled = rescale_intensity(
-            blue_reflectance,
-            no_data_replace_value=kwargs.get("no_data_replace_value"),
-            rescale_factor=kwargs.get("rescale_factor"),
-            radiance_max=kwargs.get("radiance_max"),
-            min_out_value=kwargs.get("min_out_value"),
-            max_out_value=kwargs.get("max_out_value"),
-        )
+        # red_rescaled = rescale_intensity(
+        #     red_reflectance,
+        #     no_data_replace_value=kwargs.get("no_data_replace_value"),
+        #     rescale_factor=kwargs.get("rescale_factor"),
+        #     radiance_max=kwargs.get("radiance_max"),
+        #     min_out_value=kwargs.get("min_out_value"),
+        #     max_out_value=kwargs.get("max_out_value"),
+        # )
+        # green_rescaled = rescale_intensity(
+        #     green_reflectance,
+        #     no_data_replace_value=kwargs.get("no_data_replace_value"),
+        #     rescale_factor=kwargs.get("rescale_factor"),
+        #     radiance_max=kwargs.get("radiance_max"),
+        #     min_out_value=kwargs.get("min_out_value"),
+        #     max_out_value=kwargs.get("max_out_value"),
+        # )
+        # blue_rescaled = rescale_intensity(
+        #     blue_reflectance,
+        #     no_data_replace_value=kwargs.get("no_data_replace_value"),
+        #     rescale_factor=kwargs.get("rescale_factor"),
+        #     radiance_max=kwargs.get("radiance_max"),
+        #     min_out_value=kwargs.get("min_out_value"),
+        #     max_out_value=kwargs.get("max_out_value"),
+        # )
 
-        product["measurements/tci"] = EOVariable(data=create_rgb_image(red_rescaled, green_rescaled, blue_rescaled))
+        # product["measurements/tci"] = EOVariable(data=create_rgb_image(red_rescaled, green_rescaled, blue_rescaled))
 
-        product["measurements/tci_red"] = EOVariable(data=red_rescaled)
-        product["measurements/tci_green"] = EOVariable(data=green_rescaled)
-        product["measurements/tci_blue"] = EOVariable(data=blue_rescaled)
+        # product["measurements/tci_red"] = EOVariable(data=red_rescaled)
+        # product["measurements/tci_green"] = EOVariable(data=green_rescaled)
+        # product["measurements/tci_blue"] = EOVariable(data=blue_rescaled)
         product.short_names = {
             "tci": "measurements/tci",
         }
