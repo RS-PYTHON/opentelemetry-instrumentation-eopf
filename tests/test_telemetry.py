@@ -14,8 +14,8 @@
 # limitations under the License.
 """Opentelemetry tests."""
 
-from opentelemetry.instrumentation.eopf import eopfInstrumentor
+from opentelemetry.instrumentation.eopf import EopfInstrumentor
 
 
-def test_eopfInstrumentor():
-    assert eopfInstrumentor() is not None
+def test_EopfInstrumentor():
+    assert EopfInstrumentor() is not None

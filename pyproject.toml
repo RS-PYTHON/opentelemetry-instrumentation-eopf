@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opentelemetry-instrumentation-eopf"
-version = "0.1.0"
+version = "0.2.0"
 description = "OpenTelemetry eopf instrumentation"
 readme = "README.rst"
 authors = [{ name = "Airbus, CS Group" }]
@@ -50,7 +50,7 @@ instruments = [
 ]
 
 [project.entry-points.opentelemetry_instrumentor]
-eopf = "opentelemetry.instrumentation.eopf:eopfInstrumentor"
+eopf = "opentelemetry.instrumentation.eopf:EopfInstrumentor"
 
 [tool.setuptools]
 include-package-data = true
