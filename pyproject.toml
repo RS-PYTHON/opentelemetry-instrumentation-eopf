@@ -33,7 +33,6 @@ Issues = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf/issues
 [project.optional-dependencies]
 dev = [
     "opentelemetry-test-utils == 0.61b0",
-    "bokeh", # needed by eopf 2.7.0
     "defusedxml", # needed by eopf 2.7.0
     "pre-commit",
     "pyright",
