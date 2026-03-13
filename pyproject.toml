@@ -4,13 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opentelemetry-instrumentation-eopf"
-version = "0.1.0"
-description = "OpenTelemetry eopf Instrumentation"
+version = "0.2.0"
+description = "OpenTelemetry eopf instrumentation"
 readme = "README.rst"
 authors = [{ name = "Airbus, CS Group" }]
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-dependencies = ["eopf", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-instrumentation", "opentelemetry-semantic-conventions"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "opentelemetry-api ~= 1.40",
+  "opentelemetry-instrumentation == 0.61b0",
+  "opentelemetry-semantic-conventions == 0.61b0"
+]
 
 [project.urls]
 Homepage = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf"
@@ -19,6 +32,8 @@ Issues = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf/issues
 
 [project.optional-dependencies]
 dev = [
+    "opentelemetry-test-utils == 0.61b0",
+    "defusedxml", # needed by eopf 2.7.0
     "pre-commit",
     "pyright",
     "pytest",
@@ -32,9 +47,12 @@ dev = [
     "twine",
     "wheel",
 ]
+instruments = [
+  "eopf >= 2.5.0",
+]
 
 [project.entry-points.opentelemetry_instrumentor]
-eopf = "opentelemetry.instrumentation.eopf:eopfInstrumentor"
+eopf = "opentelemetry.instrumentation.eopf:EopfInstrumentor"
 
 [tool.setuptools]
 include-package-data = true
@@ -47,8 +65,9 @@ exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
 "*" = ["LICENSE", "NOTICE", "py.typed"]
 
 [tool.pytest.ini_options]
-addopts = "--disable-socket --allow-unix-socket --allow-hosts=localhost"
+addopts = "--color=yes"
 testpaths = ["tests"]
+pythonpath = ["tests"]
 
 [tool.uv]
 cache-keys = [{ git = true }]

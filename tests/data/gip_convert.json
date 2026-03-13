@@ -1,0 +1,7 @@
+{
+    "no_data_replace_value": 0,
+    "rescale_factor": 254,
+    "radiance_max": 0.25,
+    "min_out_value": 0,
+    "max_out_value": 255
+}

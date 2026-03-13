@@ -1,0 +1,144 @@
+{
+    "version": "06.17",
+    "processor_name": "S03OLCEFR",
+    "input_products": [
+        {
+            "mode": "always",
+            "mandatory": true,
+            "name": "l0",
+            "alternatives": [
+                {
+                    "order": "1",
+                    "stac_query": {
+                        "filter-lang": "cql2-json",
+                        "filter": {
+                            "op": "and",
+                            "args": [
+                                {
+                                    "op": "=",
+                                    "args": [
+                                        {
+                                            "property": "product_type"
+                                        },
+                                        "{local_variables.product_type}"
+                                    ]
+                                },
+                                {
+                                    "op": "t_intersects_offset",
+                                    "args": [
+                                        {
+                                            "property": "start_datetime"
+                                        },
+                                        {
+                                            "interval": [
+                                                "{global_variables.start_datetime}",
+                                                "{global_variables.end_datetime}"
+                                            ]
+                                        },
+                                        {
+                                            "start_offset": "{local_variables.dTa}"
+                                        },
+                                        {
+                                            "end_offset": "{local_variables.dTb}"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "sortby": [
+                            {
+                                "field": "start_datetime",
+                                "direction": "desc"
+                            }
+                        ],
+                        "limit": 3
+                    },
+                    "local_variables": {
+                        "product_type": "S3OLCL0_",
+                        "dTa": -1000,
+                        "dTb": 10800
+                    },
+                    "validation_rules": {
+                        "minimum_products": 1,
+                        "duplication": false
+                    }
+                }
+            ]
+        }
+    ],
+    "input_adfs": [
+        {
+            "mode": "always",
+            "mandatory": true,
+            "name": "ecmwf",
+            "alternatives": [
+                {
+                    "order": "1",
+                    "stac_query": {
+                        "filter-lang": "cql2-json",
+                        "filter": {
+                            "op": "and",
+                            "args": [
+                                {
+                                    "op": "=",
+                                    "args": [
+                                        {
+                                            "property": "product_type"
+                                        },
+                                        "{local_variables.product_type}"
+                                    ]
+                                },
+                                {
+                                    "op": "t_intersects_offset",
+                                    "args": [
+                                        {
+                                            "property": "start_datetime"
+                                        },
+                                        {
+                                            "interval": [
+                                                "{global_variables.start_datetime}",
+                                                "{global_variables.end_datetime}"
+                                            ]
+                                        },
+                                        {
+                                            "start_offset": "{local_variables.dTa}"
+                                        },
+                                        {
+                                            "end_offset": "{local_variables.dTb}"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "sortby": [
+                            {
+                                "field": "start_datetime",
+                                "direction": "desc"
+                            }
+                        ],
+                        "limit": 3
+                    },
+                    "local_variables": {
+                        "product_type": "ADF_ECMWA_",
+                        "dTa": 0,
+                        "dTb": 0
+                    },
+                    "validation_rules": {
+                        "minimum_products": 1,
+                        "duplication": false
+                    }
+                }
+            ]
+        }
+    ],
+    "global_variables": {
+        "start_datetime": "2024-09-27T00:00:00.000Z",
+        "end_datetime": "2024-09-27T12:00:00.000Z"
+    },
+    "output_products": [
+        {
+            "name": "olcefr",
+            "product_type": "S03OLCEFR"
+        }
+    ]
+}
