@@ -48,7 +48,7 @@ class TestEopfInstrumentation(TestBase):
         for span in spans:
             self.assertEqual(SpanKind.INTERNAL, span.kind)
 
-        self.assertEqual("MyPVIProcessor", spans[0].name)
+        self.assertEqual("MyPVIProcessor.run", spans[0].name)
         self.assertEqual("MyProcessingUnit.run", spans[1].name)
         self.assertEqual("MyProcessor.run", spans[2].name)
         self.assertEqual("EOProcessorWorkFlow.open_input_products", spans[3].name)

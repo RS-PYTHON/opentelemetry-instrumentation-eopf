@@ -35,6 +35,11 @@ from opentelemetry.instrumentation.eopf.package import _instruments
 class EopfInstrumentor(BaseInstrumentor):
     """An instrumentor for eopf."""
 
+    def __init__(self):
+        self._original_eopu_init_subclass = EOProcessingUnit.__init_subclass__
+        self._tracer = None
+        self._meter = None
+
     @override
     def instrumentation_dependencies(self) -> Collection[str]:
         """Return a list of python packages with versions that the will be instrumented.
@@ -48,11 +53,11 @@ class EopfInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs) -> None:
         """Instruments eopf."""
         tracer_provider = kwargs.get("tracer_provider")
-        self._tracer = get_tracer(__name__, tracer_provider=tracer_provider)  # pylint: disable=W0201
+        self._tracer = get_tracer(__name__, tracer_provider=tracer_provider)
         self._add_tracing_patches()
 
         meter_provider = kwargs.get("meter_provider")
-        self._meter = get_meter(__name__, meter_provider=meter_provider)  # pylint: disable=W0201
+        self._meter = get_meter(__name__, meter_provider=meter_provider)
         self._add_metrics_patches()
 
     @override
@@ -75,47 +80,54 @@ class EopfInstrumentor(BaseInstrumentor):
         if value is not None:
             span_attrs[span_attr_name] = value
 
-    def _hydrate_span_from_args(self, func, instance, args) -> dict[str, Any]:
-        span_attributes = {}
+    def _hydrate_span_from_args(self, func, instance, args, kwargs) -> dict[str, Any]:
+        span_attrs = {}
 
         if isinstance(instance, EORunner):
             if func.__name__ == "run":
-                self._set_span_attr_from_arg(span_attributes, args[0], "eopf.payload")
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 0, "payload"), "eopf.payload")
 
-            self._set_span_attr_from_attr(instance, span_attributes, "_payload_dir", "eopf.payload_dir")
-            self._set_span_attr_from_attr(instance, span_attributes, "_working_dir", "eopf.working_dir")
+            self._set_span_attr_from_attr(instance, span_attrs, "_payload_dir", "eopf.payload_dir")
+            self._set_span_attr_from_attr(instance, span_attrs, "_working_dir", "eopf.working_dir")
 
         elif isinstance(instance, EOProcessorWorkFlow):
             if func.__name__ == "open_input_products":
-                self._set_span_attr_from_arg(span_attributes, args[0], "eopf.inputs_io_products")
+                self._set_span_attr_from_arg(
+                    span_attrs, self._get_arg(args, kwargs, 0, "inputs_io_products"), "eopf.inputs_io_products"
+                )
             elif func.__name__ == "run_workflow":
-                self._set_span_attr_from_arg(span_attributes, args[0], "eopf.io_config")
-                self._set_span_attr_from_arg(span_attributes, args[1], "eopf.dask_context")
-                self._set_span_attr_from_arg(span_attributes, args[2], "eopf.eoqc")
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 0, "io_config"), "eopf.io_config")
+                self._set_span_attr_from_arg(
+                    span_attrs, self._get_arg(args, kwargs, 1, "dask_context"), "eopf.dask_context"
+                )
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 2, "eoqc"), "eopf.eoqc")
 
-            self._set_span_attr_from_attr(
-                instance, span_attributes, "_requested_io_outputs", "eopf.requested_io_outputs"
-            )
-            self._set_span_attr_from_attr(instance, span_attributes, "_requested_io_inputs", "eopf.requested_io_inputs")
-            self._set_span_attr_from_attr(instance, span_attributes, "_requested_io_adfs", "eopf.requested_io_adfs")
+            self._set_span_attr_from_attr(instance, span_attrs, "_requested_io_outputs", "eopf.requested_io_outputs")
+            self._set_span_attr_from_attr(instance, span_attrs, "_requested_io_inputs", "eopf.requested_io_inputs")
+            self._set_span_attr_from_attr(instance, span_attrs, "_requested_io_adfs", "eopf.requested_io_adfs")
 
         elif isinstance(instance, EOProcessingUnit):
             if func.__name__ in ("run", "run_validating"):
-                self._set_span_attr_from_arg(span_attributes, args[0], "eopf.inputs")
-                self._set_span_attr_from_arg(span_attributes, args[1], "eopf.adfs")
-                self._set_span_attr_from_arg(span_attributes, args[2], "eopf.mode")
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 0, "inputs"), "eopf.inputs")
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 1, "adfs"), "eopf.adfs")
+                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 2, "mode"), "eopf.mode")
 
-        return span_attributes
+        return span_attrs
+
+    def _get_arg(self, args, kwargs, index, name):
+        if len(args) > index:
+            return args[index]
+        return kwargs.get(name)
 
     def _do_execute(self, wrapped, instance, args, kwargs):
         if not is_instrumentation_enabled():
             return wrapped(*args, **kwargs)
 
         exception = None
-
-        with self._tracer.start_as_current_span(wrapped.__qualname__, kind=SpanKind.INTERNAL) as span:
+        span_name = f"{instance.__class__.__name__}.{wrapped.__name__}"
+        with self._tracer.start_as_current_span(span_name, kind=SpanKind.INTERNAL) as span:
             if span.is_recording():
-                span.set_attributes(self._hydrate_span_from_args(wrapped, instance, args))
+                span.set_attributes(self._hydrate_span_from_args(wrapped, instance, args, kwargs))
             try:
                 result = wrapped(*args, **kwargs)
             except Exception as exc:  # pylint: disable=W0703
@@ -128,16 +140,51 @@ class EopfInstrumentor(BaseInstrumentor):
 
         return result
 
+    def _all_subclasses(self, cls):
+        for subclass in cls.__subclasses__():
+            yield subclass
+            yield from self._all_subclasses(subclass)
+
+    def _wrap_function_wrapper_if_exists(self, cls, func_name: str):
+        # Wrap function only if it exists and not already wrapped
+        func = getattr(cls, func_name, None)
+        if func and not getattr(func, "__wrapped__", None):
+            wrap_function_wrapper(cls, func_name, self._do_execute)
+
+    def _instrument_processing_unit(self, cls):
+        # Instrument interesting methods from an EOProcessingUnit subclass
+        for method in ("run", "run_validating"):
+            self._wrap_function_wrapper_if_exists(cls, method)
+
+    def _instrument_future_processing_units(self):
+        original_init_subclass = self._original_eopu_init_subclass
+        instrument_processing_unit = self._instrument_processing_unit
+
+        def patched_init_subclass(cls, **kwargs):
+            original_init_subclass(**kwargs)
+            instrument_processing_unit(cls)
+
+        EOProcessingUnit.__init_subclass__ = classmethod(patched_init_subclass)
+
     def _add_tracing_patches(self):
-        wrap_function_wrapper(EOProcessingUnit, "run", self._do_execute)
-        wrap_function_wrapper(EOProcessingUnit, "run_validating", self._do_execute)
-        wrap_function_wrapper(EOProcessorWorkFlow, "open_input_products", self._do_execute)
-        wrap_function_wrapper(EOProcessorWorkFlow, "run_workflow", self._do_execute)
-        wrap_function_wrapper(EORunner, "run", self._do_execute)
+        # Instrument EOProcessingUnit subclasses loaded afterwards
+        self._instrument_future_processing_units()
+        # Instrument EOProcessingUnit subclasses already loaded
+        for processing_unit_cls in self._all_subclasses(EOProcessingUnit):
+            self._instrument_processing_unit(processing_unit_cls)
+        # Instrument other classes
+        self._wrap_function_wrapper_if_exists(EOProcessorWorkFlow, "open_input_products")
+        self._wrap_function_wrapper_if_exists(EOProcessorWorkFlow, "run_workflow")
+        self._wrap_function_wrapper_if_exists(EORunner, "run")
 
     def _remove_tracing_patches(self):
-        unwrap(EOProcessingUnit, "run")
-        unwrap(EOProcessingUnit, "run_validating")
+        # Make sure we don't instrument new EOProcessingUnit subclasses
+        EOProcessingUnit.__init_subclass__ = self._original_eopu_init_subclass
+        # Uninstrument loaded EOProcessingUnit subclasses
+        for processing_unit_cls in self._all_subclasses(EOProcessingUnit):
+            unwrap(processing_unit_cls, "run")
+            unwrap(processing_unit_cls, "run_validating")
+        # Uninstrument other classes
         unwrap(EOProcessorWorkFlow, "open_input_products")
         unwrap(EOProcessorWorkFlow, "run_workflow")
         unwrap(EORunner, "run")
