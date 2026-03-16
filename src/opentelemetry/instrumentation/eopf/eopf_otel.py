@@ -17,7 +17,7 @@
 import json
 import os
 
-from eopf.cli import cli
+from eopf.cli.cli import eopf_cli
 from opentelemetry import context, propagate
 
 
@@ -46,7 +46,7 @@ def main():
     ``opentelemetry-instrument``.
     """
     restore_context_from_env()
-    cli()
+    eopf_cli()
 
 
 if __name__ == "__main__":
