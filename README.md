@@ -63,6 +63,39 @@ When uninstrumented, it restores the original methods and removes all wrappers.
 
 Metric instrumentation hooks are present but currently not implemented.
 
+## CLI wrapper for subprocess trace propagation
+
+This package also provides a small CLI wrapper named `eopf_otel` to enable **OpenTelemetry trace context propagation when `eopf` is executed as a subprocess**.
+
+When launching `eopf` from another Python process, the parent process can inject the current trace context into environment variables using OpenTelemetry propagation APIs. The `eopf_otel` wrapper restores this context before invoking the original `eopf` CLI so that all spans produced during the execution belong to the same distributed trace.
+
+This is particularly useful when orchestrating EOPF processing pipelines from external services or workflow engines.
+
+### How it works
+
+The wrapper performs the following steps:
+
+1. Reads the `OTEL_TRACE_CONTEXT` environment variable containing a JSON-encoded propagation carrier.
+2. Restores the OpenTelemetry context using `opentelemetry.propagate.extract`.
+3. Attaches the context to the current execution.
+4. Executes the original `eopf` CLI.
+
+### Example usage
+
+Parent process:
+
+```python
+from opentelemetry.propagate import inject
+import json
+import os
+
+carrier = {}
+inject(carrier)
+
+env = os.environ.copy()
+env["OTEL_TRACE_CONTEXT"] = json.dumps(carrier)
+```
+
 ## Contributing
 
 This projects adheres to the OpenTelemetry Python [guidelines for instrumentations](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/CONTRIBUTING.md#guideline-for-instrumentations).
