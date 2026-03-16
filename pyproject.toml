@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opentelemetry-instrumentation-eopf"
-version = "0.2.0"
+version = "0.2.1"
 description = "OpenTelemetry eopf instrumentation"
 readme = "README.rst"
 authors = [{ name = "Airbus, CS Group" }]
@@ -29,6 +29,9 @@ dependencies = [
 Homepage = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf"
 Repository = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf"
 Issues = "https://github.com/RS-PYTHON/opentelemetry-instrumentation-eopf/issues/"
+
+[project.scripts]
+eopf_otel = "opentelemetry.instrumentation.eopf.eopf_otel:main"
 
 [project.optional-dependencies]
 dev = [
