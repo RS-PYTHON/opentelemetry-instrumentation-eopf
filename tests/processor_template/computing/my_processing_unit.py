@@ -18,6 +18,7 @@ import xarray as xr
 from eopf import EOProduct
 from eopf.computing import EOProcessingUnit
 from eopf.computing.abstract import MappingAuxiliary, MappingDataType
+from eopf.computing.breakpoint import eopf_breakpoint_decorator
 
 
 def rescale_intensity(
@@ -82,6 +83,10 @@ class MyProcessingUnit(EOProcessingUnit):
     def get_mandatory_input_list(self, **kwargs: Any) -> list[str]:
         return ["l1c"]
 
+    @eopf_breakpoint_decorator(
+        "my_processing_unit",
+        description="MyProcessingUnit: wololo",
+    )
     def run(
         self,
         inputs: MappingDataType,
