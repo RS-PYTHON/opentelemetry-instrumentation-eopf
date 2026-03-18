@@ -17,10 +17,7 @@
 from typing import Any, Collection
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
-from opentelemetry.instrumentation.utils import (
-    is_instrumentation_enabled,
-    unwrap,
-)
+from opentelemetry.instrumentation.utils import is_instrumentation_enabled
 from opentelemetry.metrics import get_meter
 from opentelemetry.trace import SpanKind, Status, StatusCode, get_tracer
 from typing_extensions import override
@@ -30,6 +27,8 @@ from eopf.computing import EOProcessingUnit
 from eopf.triggering.runner import EORunner
 from eopf.triggering.workflow import EOProcessorWorkFlow
 from opentelemetry.instrumentation.eopf.package import _instruments
+
+_EOPF_INSTRUMENTED_ATTR = "_eopf_instrumented"
 
 
 class EopfInstrumentor(BaseInstrumentor):
@@ -110,7 +109,6 @@ class EopfInstrumentor(BaseInstrumentor):
             if func.__name__ in ("run", "run_validating"):
                 self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 0, "inputs"), "eopf.inputs")
                 self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 1, "adfs"), "eopf.adfs")
-                self._set_span_attr_from_arg(span_attrs, self._get_arg(args, kwargs, 2, "mode"), "eopf.mode")
 
         return span_attrs
 
@@ -146,10 +144,47 @@ class EopfInstrumentor(BaseInstrumentor):
             yield from self._all_subclasses(subclass)
 
     def _wrap_function_wrapper_if_exists(self, cls, func_name: str):
-        # Wrap function only if it exists and not already wrapped
+        # Wrap function only if it exists and not already wrapped by us
         func = getattr(cls, func_name, None)
-        if func and not getattr(func, "__wrapped__", None):
+        if func and not self._is_already_instrumented(func):
             wrap_function_wrapper(cls, func_name, self._do_execute)
+            setattr(getattr(cls, func_name), _EOPF_INSTRUMENTED_ATTR, True)
+
+    def _is_already_instrumented(self, func):
+        # Recursive check to see if the function has already been instrumented by us
+        current = func
+        while current:
+            if getattr(current, _EOPF_INSTRUMENTED_ATTR, False):
+                return True
+            current = self._get_wrapped_function(current)
+        return False
+
+    def _safe_unwrap(self, cls, method_name: str):
+        # Recursive walk to remove safely our wrapper, and not one from another library
+        func = getattr(cls, method_name, None)
+        if not func:
+            return
+
+        prev = None
+        current = func
+
+        while current:
+            if getattr(current, _EOPF_INSTRUMENTED_ATTR, False):
+                wrapped = self._get_wrapped_function(current)
+                if wrapped:
+                    if prev is None:
+                        setattr(cls, method_name, wrapped)
+                    elif hasattr(prev, "_self_wrapper"):
+                        prev._self_wrapper = wrapped
+                    else:
+                        prev.__wrapped__ = wrapped
+                    return
+
+            prev = current
+            current = self._get_wrapped_function(current)
+
+    def _get_wrapped_function(self, func) -> Any | None:
+        return getattr(func, "__wrapped__", getattr(func, "_self_wrapper", None))
 
     def _instrument_processing_unit(self, cls):
         # Instrument interesting methods from an EOProcessingUnit subclass
@@ -182,12 +217,12 @@ class EopfInstrumentor(BaseInstrumentor):
         EOProcessingUnit.__init_subclass__ = self._original_eopu_init_subclass
         # Uninstrument loaded EOProcessingUnit subclasses
         for processing_unit_cls in self._all_subclasses(EOProcessingUnit):
-            unwrap(processing_unit_cls, "run")
-            unwrap(processing_unit_cls, "run_validating")
+            self._safe_unwrap(processing_unit_cls, "run")
+            self._safe_unwrap(processing_unit_cls, "run_validating")
         # Uninstrument other classes
-        unwrap(EOProcessorWorkFlow, "open_input_products")
-        unwrap(EOProcessorWorkFlow, "run_workflow")
-        unwrap(EORunner, "run")
+        self._safe_unwrap(EOProcessorWorkFlow, "open_input_products")
+        self._safe_unwrap(EOProcessorWorkFlow, "run_workflow")
+        self._safe_unwrap(EORunner, "run")
 
     def _add_metrics_patches(self):
         pass

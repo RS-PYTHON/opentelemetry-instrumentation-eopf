@@ -34,8 +34,16 @@ class TestEopfInstrumentation(TestBase):
 
     @override
     def tearDown(self):
-        super().tearDown()
         EopfInstrumentor().uninstrument()
+        super().tearDown()
+
+    def test_eopf_instrumentor_on_off(self):
+        """Test EOPF instrumentation flag"""
+        instrumentor = EopfInstrumentor()
+        instrumentor.instrument()
+        self.assertTrue(getattr(instrumentor, "_is_instrumented_by_opentelemetry", False))
+        instrumentor.uninstrument()
+        self.assertFalse(getattr(instrumentor, "_is_instrumented_by_opentelemetry", True))
 
     def test_eopf_instrumentor(self):
         """Test EOPF instrumentation"""
