@@ -47,7 +47,6 @@ The instrumentor enriches spans with contextual information extracted from metho
 - payload information
 - workflow I/O configuration
 - processing unit inputs and ADFs
-- execution mode
 - working directory and payload directory
 
 ### Error handling
