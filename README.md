@@ -1,4 +1,7 @@
 # opentelemetry-instrumentation-eopf
+
+[![PyPI version](https://badge.fury.io/py/opentelemetry-instrumentation-eopf.svg)](https://pypi.org/project/opentelemetry-instrumentation-eopf)
+
 OpenTelemetry [Instrumentation Library](https://opentelemetry.io/docs/specs/otel/overview/#instrumentation-libraries) for ESA Copernicus Earth Observation Processor Framework ([EOPF](https://eopf.copernicus.eu))
 
 ## EOPF OpenTelemetry Instrumentation
