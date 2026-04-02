@@ -33,5 +33,11 @@ header:
     - 'LICENSE'
     - 'NOTICE'
     - tests/data
+    - tests/processor_template/computing/my_processing_unit.py
+    - tests/processor_template/exceptions/warnings.py
+    - tests/processor_template/__init__.py
+    - tests/processor_template/computing/__init__.py
+    - tests/processor_template/exceptions/__init__.py
+    - tests/processor_template/exceptions/errors.py
 
   comment: on-failure
