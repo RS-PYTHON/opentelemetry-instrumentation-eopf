@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2023-2026 Airbus, CS Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,5 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: Airbus, CS Group
+    copyright-year: '2023-2026'
 
-curl https://pypi.org/pypi/opentelemetry-instrumentation-eopf/json | python -c "import sys, json; print(json.load(sys.stdin)['info']['version']);"
+  paths-ignore:
+    - '**/*.csv'
+    - '**/*.env'
+    - '**/*.json'
+    - '**/*.lock'
+    - '**/*.md'
+    - '**/*.raw'
+    - '**/Dockerfile*'
+    - '**/.gitignore'
+    - '.gitmodules'
+    - '.safety-project.ini'
+    - '.trivyignore'
+    - 'LICENSE'
+    - 'NOTICE'
+    - tests/data
+
+  comment: on-failure
