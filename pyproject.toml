@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opentelemetry-instrumentation-eopf"
-version = "0.2.3"
+version = "0.2.4"
 description = "OpenTelemetry eopf instrumentation"
 readme = "README.rst"
 authors = [{ name = "Airbus, CS Group" }]
@@ -20,9 +20,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "opentelemetry-api ~= 1.40",
-  "opentelemetry-instrumentation == 0.61b0",
-  "opentelemetry-semantic-conventions == 0.61b0"
+  "opentelemetry-api ~= 1.41",
+  "opentelemetry-instrumentation == 0.62b0",
+  "opentelemetry-semantic-conventions == 0.62b0"
 ]
 
 [project.urls]
@@ -35,7 +35,7 @@ eopf_otel = "opentelemetry.instrumentation.eopf.eopf_otel:main"
 
 [project.optional-dependencies]
 dev = [
-    "opentelemetry-test-utils == 0.61b0",
+    "opentelemetry-test-utils == 0.62b0",
     "defusedxml", # needed by eopf 2.7.0
     "pre-commit",
     "pyright",
