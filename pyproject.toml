@@ -120,3 +120,33 @@ ignore = [
 
 [tool.ruff.lint.mccabe]
 max-complexity = 18
+
+
+[tool.mypy]
+warn_redundant_casts = true
+# Force analyze of partially annotate function signatures
+check_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = [
+    "E203" # whitespace before ':'
+]
+
+[tool.pylint]
+max-line-length = 120
+disable = [
+    "import-error",
+    "logging-fstring-interpolation",
+    "not-context-manager",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    "too-many-positional-arguments",
+    "too-many-public-methods",
+    "too-many-statements",
+]
