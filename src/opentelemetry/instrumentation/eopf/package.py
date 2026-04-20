@@ -16,4 +16,4 @@
 
 _instruments = ("eopf > 2.5.0",)
 
-_supports_metrics = True
+_supports_metrics = True  # pylint: disable=invalid-name
