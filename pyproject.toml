@@ -139,6 +139,7 @@ max-line-length = 120
 disable = [
     "import-error",
     "logging-fstring-interpolation",
+    "no-name-in-module",
     "not-context-manager",
     "too-few-public-methods",
     "too-many-arguments",
@@ -149,4 +150,7 @@ disable = [
     "too-many-positional-arguments",
     "too-many-public-methods",
     "too-many-statements",
+    "ungrouped-imports",
+    "wrong-import-order",
 ]
+ignore-paths = '^tests/.*$'

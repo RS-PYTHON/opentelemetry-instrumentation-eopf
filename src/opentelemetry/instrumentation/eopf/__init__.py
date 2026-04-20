@@ -60,7 +60,7 @@ class EopfInstrumentor(BaseInstrumentor):
         self._add_metrics_patches()
 
     @override
-    def _uninstrument(self, **kwargs) -> None:
+    def _uninstrument(self, **_kwargs) -> None:
         """Uninstrument the library.
 
         This only works if no other module also patches eopf.
@@ -80,7 +80,7 @@ class EopfInstrumentor(BaseInstrumentor):
             span_attrs[span_attr_name] = value
 
     def _hydrate_span_from_args(self, func, instance, args, kwargs) -> dict[str, Any]:
-        span_attrs = {}
+        span_attrs: dict = {}
 
         if isinstance(instance, EORunner):
             if func.__name__ == "run":
@@ -118,7 +118,7 @@ class EopfInstrumentor(BaseInstrumentor):
         return kwargs.get(name)
 
     def _do_execute(self, wrapped, instance, args, kwargs):
-        if not is_instrumentation_enabled():
+        if not (is_instrumentation_enabled() and self._tracer):
             return wrapped(*args, **kwargs)
 
         exception = None
@@ -175,7 +175,7 @@ class EopfInstrumentor(BaseInstrumentor):
                     if prev is None:
                         setattr(cls, method_name, wrapped)
                     elif hasattr(prev, "_self_wrapper"):
-                        prev._self_wrapper = wrapped
+                        prev._self_wrapper = wrapped  # pylint: disable=protected-access
                     else:
                         prev.__wrapped__ = wrapped
                     return
