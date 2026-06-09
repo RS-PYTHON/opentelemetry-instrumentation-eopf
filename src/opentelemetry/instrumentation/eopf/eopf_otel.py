@@ -17,23 +17,35 @@
 import json
 import os
 
+from opentelemetry.trace.propagation import SPAN_KEY
+from opentelemetry.trace.span import SpanContext
+from rs_dpr_service.utils.init_opentelemetry import init_traces, start_span
+
 from eopf.cli.cli import eopf_cli
-from opentelemetry import context, propagate
+from opentelemetry import propagate
 
 
-def restore_context_from_env():
-    """Restore an OpenTelemetry context propagated through environment variables.
+def restore_context_from_env() -> SpanContext | None:
+    """Return an OpenTelemetry span context propagated through environment variables.
 
     This function reads the ``OTEL_TRACE_CONTEXT`` environment variable,
     which is expected to contain a JSON-encoded carrier produced by
     ``opentelemetry.propagate.inject`` in a parent process. The context
-    is extracted and attached to the current execution context so that
+    is extracted and returned by this function so that
     spans created in this process continue the existing trace.
     """
     carrier_json = os.environ.get("OTEL_TRACE_CONTEXT")
-    if not carrier_json:
+    try:
+        # The json should contain a context
+        extracted_context = propagate.extract(json.loads(carrier_json))
+
+        # The context should contain a key starting by SPAN_KEY
+        span_value = [value for key, value in extracted_context.items() if key.startswith(SPAN_KEY)][0]
+
+        # This value should be a NonRecordingSpan object, that contains a SpanContext
+        return span_value.get_span_context()
+    except Exception:
         return
-    context.attach(propagate.extract(json.loads(carrier_json)))
 
 
 def main():
@@ -45,8 +57,15 @@ def main():
     in the parent process when used together with
     ``opentelemetry-instrument``.
     """
-    restore_context_from_env()
-    eopf_cli()
+    # Should be dpr.<processor_name>
+    span_name = os.environ.get("EOPF_SPAN_NAME", "eopf_otel")
+
+    # Init opentelemetry
+    init_traces(None, span_name)
+
+    # Call eopf command line from an opentelemetry span
+    with start_span(__name__, span_name, span_context=restore_context_from_env()):
+        eopf_cli()
 
 
 if __name__ == "__main__":
