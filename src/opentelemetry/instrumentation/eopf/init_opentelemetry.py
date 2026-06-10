@@ -14,8 +14,6 @@
 
 """OpenTelemetry utility"""
 
-# pylint: disable=no-name-in-module
-
 import os
 
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -52,11 +50,11 @@ def init_traces(service_name: str):
         return
     initialized = True
 
-    tempo_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
 
     otel_resource = Resource(attributes={"service.name": service_name})
     otel_tracer = TracerProvider(resource=otel_resource)
-    otel_tracer.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=tempo_endpoint)))
+    otel_tracer.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
 
     # Use this tracer everywhere in opentelemetry
     trace.set_tracer_provider(otel_tracer)
@@ -65,8 +63,14 @@ def init_traces(service_name: str):
     # Specific opentelemetry instrumentation with custom hooks
     #
 
-    BotocoreInstrumentor().instrument(tracer_provider=otel_tracer, request_hook=botocore_request_hook)
+    instrumented = ["aiobotocore", "botocore"]
     AiobotocoreInstrumentor().instrument(tracer_provider=otel_tracer, request_hook=botocore_request_hook)
+    BotocoreInstrumentor().instrument(tracer_provider=otel_tracer, request_hook=botocore_request_hook)
+
+    # Don't instrument these packages again (separated by ,)
+    disable = os.getenv("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", "").split(",")
+    disable.extend(instrumented)
+    os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = ",".join(disable)
 
     # Instrument all other dependencies under opentelemetry.instrumentation.*
     # NOTE 1: we need 'poetry run opentelemetry-bootstrap -a install' to install these.
