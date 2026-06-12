@@ -46,17 +46,15 @@ def main():
     in the parent process when used together with
     ``opentelemetry-instrument``.
     """
-    restore_context_from_env()
-
-    # Should be dpr.<processor_name>
-    span_name = os.environ.get("EOPF_SPAN_NAME", "eopf_otel")
-
     # Init opentelemetry
-    init_traces(span_name)
+    init_traces()
+
+    # Restore OpenTelemetry context
+    restore_context_from_env()
 
     # Call eopf command line from an opentelemetry span
     tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span(span_name):
+    with tracer.start_as_current_span(os.getenv("OTEL_SERVICE_NAME", "unknown_service")):
         eopf_cli()
 
 
