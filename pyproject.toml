@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opentelemetry-instrumentation-eopf"
-version = "0.2.5"
+version = "0.2.6"
 description = "OpenTelemetry eopf instrumentation"
 readme = "README.rst"
 authors = [{ name = "Airbus, CS Group" }]
