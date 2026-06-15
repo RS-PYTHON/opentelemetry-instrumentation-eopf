@@ -38,7 +38,7 @@ def test_instrumentation(mocker, monkeypatch):
     Call instrumentation code. It's only for the code coverage, don't run additional checks
     on the openlemetry internal code.
     """
-    mocker.patch("opentelemetry.instrumentation.eopf.init_opentelemetry.initialized", False)
+    mocker.patch("opentelemetry.instrumentation.eopf.init_opentelemetry.INITIALIZED", False)
     monkeypatch.setenv("TEMPO_ENDPOINT", "none")
 
     mocker.patch("opentelemetry.instrumentation.eopf.init_opentelemetry.auto_instrumentation")
