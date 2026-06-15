@@ -25,7 +25,7 @@ from opentelemetry.instrumentation.botocore import (
 from opentelemetry.instrumentation import auto_instrumentation
 
 lock = Lock()
-initialized = False
+INITIALIZED = False
 
 
 def botocore_hook(span, _service_name, _operation_name, api_params: dict):
@@ -44,10 +44,10 @@ def init_traces():
     NOTE: the OTEL_SERVICE_NAME and OTEL_EXPORTER_OTLP_ENDPOINT must be set by the caller.
     """
     with lock:
-        global initialized
-        if initialized:
+        global INITIALIZED  # pylint: disable=global-statement
+        if INITIALIZED:
             return
-        initialized = True
+        INITIALIZED = True
 
     # We'll use custom instrumentation for these packages (separated by ,)
     org_disabled = os.getenv("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", "")
