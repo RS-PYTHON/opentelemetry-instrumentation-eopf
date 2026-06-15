@@ -18,7 +18,8 @@ import json
 import os
 
 from eopf.cli.cli import eopf_cli
-from opentelemetry import context, propagate
+from opentelemetry import context, propagate, trace
+from opentelemetry.instrumentation.eopf.init_opentelemetry import init_traces
 
 
 def restore_context_from_env():
@@ -45,8 +46,16 @@ def main():
     in the parent process when used together with
     ``opentelemetry-instrument``.
     """
+    # Init opentelemetry
+    init_traces()
+
+    # Restore OpenTelemetry context
     restore_context_from_env()
-    eopf_cli()
+
+    # Call eopf command line from an opentelemetry span
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span(os.getenv("OTEL_SERVICE_NAME", "unknown_service")):
+        eopf_cli()
 
 
 if __name__ == "__main__":
