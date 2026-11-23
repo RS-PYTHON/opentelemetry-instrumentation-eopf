@@ -55,7 +55,7 @@ def init_traces():
 
     # Run the opentelemetry auto instrumentation on all packages under opentelemetry.instrumentation.*
     # This is what the command line "opentelemetry-instrumentation" would do.
-    # NOTE: we need 'poetry run opentelemetry-bootstrap -a install' to install these packages.
+    # NOTE: we need 'opentelemetry-bootstrap -a install' to install these packages.
     try:
         auto_instrumentation.initialize()
     finally:
